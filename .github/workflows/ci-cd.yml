@@ -145,7 +145,7 @@ jobs:
             --set backend.image.tag=${{ github.sha }} \
             --set frontend.image.repository=ghcr.io/${OWNER}/ironpulse-frontend \
             --set frontend.image.tag=${{ github.sha }} \
-            --set postgres.password="${{ secrets.POSTGRES_PASSWORD }}" \
+            ${PG_PASSWORD:+--set postgres.password="$PG_PASSWORD"} \
             --wait --timeout 10m
 
       - name: Show rollout
