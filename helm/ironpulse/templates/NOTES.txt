@@ -9,7 +9,7 @@ Open the app through the Ingress:
   http://{{ .Values.ingress.host }}/          (frontend)
   http://{{ .Values.ingress.host }}/docs      (FastAPI Swagger)
 {{- else }}
-  kubectl get svc -n ingress-nginx ingress-nginx-controller   # EXTERNAL-IP / hostname
+  kubectl get svc -n traefik traefik   # EXTERNAL-IP / load balancer hostname
 {{- end }}
 {{- end }}
 

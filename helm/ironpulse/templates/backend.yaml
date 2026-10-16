@@ -30,11 +30,13 @@ spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         # Wait for PostgreSQL so migrations don't crash-loop on a cold start.
         - name: wait-for-db
           image: {{ .Values.postgres.image }}
-          command: ["sh", "-c", "until pg_isready -h {{ include "ironpulse.postgresHost" . }} -p 5432; do echo waiting for db; sleep 2; done"]
+          command: ["sh", "-c", "until pg_isready -h {{ include "ironpulse.postgresHost" . }} -p 5432 -U {{ .Values.postgres.username }}; do echo waiting for db; sleep 2; done"]
           securityContext:
             {{- include "ironpulse.podSecurity" . | nindent 12 }}
       containers:

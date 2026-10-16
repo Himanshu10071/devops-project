@@ -39,7 +39,7 @@ postgres:
 
 ingress:
   enabled: true
-  className: nginx
+  className: traefik      # Traefik ingress controller (ingress-nginx was retired in 2026)
   host: ""                 # "" = match any host (e.g. the AWS load balancer DNS name)
   annotations: {}
 
