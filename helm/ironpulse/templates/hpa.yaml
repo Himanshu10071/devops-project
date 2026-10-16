@@ -1,0 +1,29 @@
+{{- range $component := list "backend" "frontend" }}
+{{- $hpa := index $.Values.hpa $component }}
+{{- if $hpa.enabled }}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "ironpulse.fullname" $ }}-{{ $component }}
+  labels:
+    {{- include "ironpulse.labels" $ | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "ironpulse.fullname" $ }}-{{ $component }}
+  minReplicas: {{ $hpa.minReplicas }}
+  maxReplicas: {{ $hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $hpa.targetCPUUtilizationPercentage }}
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 120
+{{- end }}
+{{- end }}

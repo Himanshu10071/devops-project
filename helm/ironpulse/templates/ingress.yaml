@@ -1,0 +1,39 @@
+{{- if .Values.ingress.enabled }}
+{{- $full := include "ironpulse.fullname" . }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $full }}
+  labels:
+    {{- include "ironpulse.labels" . | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - {{- with .Values.ingress.host }}
+      host: {{ . }}
+      {{- end }}
+      http:
+        paths:
+          # API and its Swagger docs go to FastAPI...
+          {{- range list "/api" "/docs" "/openapi.json" }}
+          - path: {{ . }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $full }}-backend
+                port:
+                  name: http
+          {{- end }}
+          # ...everything else is the React app.
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $full }}-frontend
+                port:
+                  name: http
+{{- end }}

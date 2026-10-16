@@ -1,0 +1,34 @@
+{{- /* Only rendered when the Prometheus Operator CRDs exist, so the chart also installs on bare clusters. */}}
+{{- if and .Values.monitoring.serviceMonitor.enabled (.Capabilities.APIVersions.Has "monitoring.coreos.com/v1") }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "ironpulse.fullname" . }}-backend
+  labels:
+    {{- include "ironpulse.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "ironpulse.selector" (dict "component" "backend" "root" .) | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+{{- end }}
+{{- if .Values.monitoring.grafanaDashboard.enabled }}
+---
+# Picked up automatically by the Grafana sidecar in kube-prometheus-stack.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ironpulse.fullname" . }}-grafana-dashboard
+  labels:
+    {{- include "ironpulse.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+data:
+  ironpulse-dashboard.json: |-
+{{ .Files.Get "dashboards/ironpulse.json" | indent 4 }}
+{{- end }}

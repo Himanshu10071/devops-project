@@ -1,0 +1,17 @@
+IronPulse {{ .Chart.AppVersion }} deployed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+Check the rollout:
+  kubectl get pods,svc,ingress,hpa -n {{ .Release.Namespace }}
+
+{{- if .Values.ingress.enabled }}
+Open the app through the Ingress:
+{{- if .Values.ingress.host }}
+  http://{{ .Values.ingress.host }}/          (frontend)
+  http://{{ .Values.ingress.host }}/docs      (FastAPI Swagger)
+{{- else }}
+  kubectl get svc -n ingress-nginx ingress-nginx-controller   # EXTERNAL-IP / hostname
+{{- end }}
+{{- end }}
+
+Without an Ingress controller:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "ironpulse.fullname" . }}-frontend 3000:80

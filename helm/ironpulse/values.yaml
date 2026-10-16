@@ -1,0 +1,66 @@
+# Default values for the IronPulse chart. Environment files (values-dev.yaml,
+# values-prod.yaml) override only what differs. CI sets the image tags to the commit SHA.
+
+nameOverride: ""
+imagePullSecrets: []   # e.g. [{name: ghcr-pull}] if the GHCR packages are private
+
+backend:
+  image:
+    repository: ghcr.io/himanshu10071/ironpulse-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  port: 8000
+  expiringSoonDays: 7
+  resources:
+    requests: {cpu: 100m, memory: 192Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+frontend:
+  image:
+    repository: ghcr.io/himanshu10071/ironpulse-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  port: 8080
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {cpu: 200m, memory: 128Mi}
+
+postgres:
+  enabled: true            # false = use an external DB such as Amazon RDS (set externalHost)
+  externalHost: ""
+  image: postgres:16-alpine
+  database: ironpulse
+  username: ironpulse
+  password: ironpulse      # override in CI with a GitHub secret; never commit real passwords
+  storage: 5Gi
+  storageClass: ""         # "" = cluster default StorageClass
+
+ingress:
+  enabled: true
+  className: nginx
+  host: ""                 # "" = match any host (e.g. the AWS load balancer DNS name)
+  annotations: {}
+
+hpa:
+  backend:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 60
+  frontend:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
+
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 15s
+    # kube-prometheus-stack selects ServiceMonitors by its release label.
+    labels:
+      release: kube-prometheus-stack
+  grafanaDashboard:
+    enabled: true

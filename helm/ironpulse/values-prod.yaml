@@ -1,0 +1,14 @@
+# AWS EKS (cluster from terraform/). CI passes image tags and the DB password with --set.
+backend:
+  replicaCount: 2
+frontend:
+  replicaCount: 2
+postgres:
+  storageClass: gp3        # created by k8s/storageclass-gp3.yaml, backed by the EBS CSI driver
+  storage: 10Gi
+ingress:
+  host: ""                 # serve on the ingress-nginx load balancer hostname
+hpa:
+  backend:
+    minReplicas: 2
+    maxReplicas: 8

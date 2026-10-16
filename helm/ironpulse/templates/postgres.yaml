@@ -1,0 +1,82 @@
+{{- if .Values.postgres.enabled }}
+{{- $name := printf "%s-postgres" (include "ironpulse.fullname" .) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "ironpulse.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "ironpulse.selector" (dict "component" "postgres" "root" .) | nindent 4 }}
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+---
+# StatefulSet gives the database a stable identity and its own PersistentVolumeClaim.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "ironpulse.labels" . | nindent 4 }}
+    {{- include "ironpulse.selector" (dict "component" "postgres" "root" .) | nindent 4 }}
+spec:
+  serviceName: {{ $name }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "ironpulse.selector" (dict "component" "postgres" "root" .) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ironpulse.selector" (dict "component" "postgres" "root" .) | nindent 8 }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      securityContext:
+        fsGroup: 70          # "postgres" group in the alpine image
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          ports:
+            - containerPort: 5432
+              name: postgres
+          envFrom:
+            - secretRef:
+                name: {{ include "ironpulse.fullname" . }}-db
+          env:
+            - name: DATABASE_URL
+              value: ""
+            # A fresh EBS volume has a lost+found folder; Postgres needs an empty subdirectory.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: 500m, memory: 512Mi}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- with .Values.postgres.storageClass }}
+        storageClassName: {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.postgres.storage }}
+{{- end }}

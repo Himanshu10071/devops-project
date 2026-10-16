@@ -1,0 +1,17 @@
+# Local cluster (Docker Desktop / minikube / kind) with locally built images:
+#   docker compose build
+#   helm upgrade --install ironpulse ./helm/ironpulse -n ironpulse --create-namespace -f helm/ironpulse/values-dev.yaml
+backend:
+  image:
+    repository: ironpulse-backend
+    tag: local
+    pullPolicy: Never
+frontend:
+  image:
+    repository: ironpulse-frontend
+    tag: local
+    pullPolicy: Never
+ingress:
+  host: ironpulse.local   # add "127.0.0.1 ironpulse.local" to your hosts file
+postgres:
+  storage: 1Gi
