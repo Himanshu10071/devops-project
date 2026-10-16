@@ -16,7 +16,7 @@ export default function Dashboard({ navigate }) {
       <PageHeader
         eyebrow="GYM / OVERVIEW"
         title={`${greeting} 💪`}
-        subtitle="Here’s how IronPulse is doing today."
+        subtitle="Here’s how IronPulse is doing today — served from AWS EKS (ap-south-1)."
         action={<button className="primary" onClick={() => navigate('attendance')}>⚡ Quick check-in</button>}
       />
       <ErrorBanner message={error} />
