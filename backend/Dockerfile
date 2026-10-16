@@ -4,7 +4,9 @@ ENV PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# pip itself (and its vendored urllib3/msgpack) is not needed at runtime: remove it
+# from the venv so it does not ship in the final image or show up in Trivy scans.
+RUN pip install -r requirements.txt && python -m pip uninstall -y pip
 
 # ---------- runtime stage: only the venv + app code, no build tooling ----------
 FROM python:3.12-slim
@@ -12,7 +14,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH"
 
-# Pull in Debian security fixes and drop the system pip (the venv has its own).
+# Pull in Debian security fixes and drop the system pip (nothing installs packages at runtime).
 RUN apt-get update \
     && apt-get upgrade -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
