@@ -9,17 +9,30 @@ locals {
   public_subnets  = [for i, _ in local.azs : cidrsubnet(var.vpc_cidr, 8, i)]
   private_subnets = [for i, _ in local.azs : cidrsubnet(var.vpc_cidr, 8, i + 100)]
 
-  ci_access_entries = var.ci_deployer_principal_arn == "" ? {} : {
-    github_actions = {
-      principal_arn = var.ci_deployer_principal_arn
-      policy_associations = {
-        admin = {
-          policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
-          access_scope = { type = "cluster" }
-        }
-      }
+  # Principals that get Kubernetes cluster-admin through EKS access entries: the
+  # deployer IAM user from iam-ci.tf, plus an optional extra ARN. Map keys stay
+  # static so Terraform can plan before the user's ARN is known.
+  cluster_admin_policy = {
+    admin = {
+      policy_arn   = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+      access_scope = { type = "cluster" }
     }
   }
+
+  ci_access_entries = merge(
+    var.create_ci_deployer ? {
+      ci_deployer = {
+        principal_arn       = aws_iam_user.ci_deployer[0].arn
+        policy_associations = local.cluster_admin_policy
+      }
+    } : {},
+    var.ci_deployer_principal_arn != "" ? {
+      extra_admin = {
+        principal_arn       = var.ci_deployer_principal_arn
+        policy_associations = local.cluster_admin_policy
+      }
+    } : {},
+  )
 }
 
 # ---------------------------------------------------------------------------
@@ -65,7 +78,7 @@ module "eks" {
   subnet_ids = module.vpc.private_subnets
 
   cluster_endpoint_public_access           = true
-  enable_cluster_creator_admin_permissions = true
+  enable_cluster_creator_admin_permissions = var.grant_creator_admin
   access_entries                           = local.ci_access_entries
 
   cluster_addons = {

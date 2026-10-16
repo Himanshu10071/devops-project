@@ -37,3 +37,14 @@ output "configure_kubectl" {
   description = "Run this to point kubectl at the new cluster."
   value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
 }
+
+output "ci_deployer_access_key_id" {
+  description = "Access key ID for the deployer user (store as the AWS_ACCESS_KEY_ID GitHub secret)."
+  value       = var.create_ci_deployer ? aws_iam_access_key.ci_deployer[0].id : null
+}
+
+output "ci_deployer_secret_access_key" {
+  description = "Secret key for the deployer user (store as AWS_SECRET_ACCESS_KEY). Read with: terraform output -raw ci_deployer_secret_access_key"
+  value       = var.create_ci_deployer ? aws_iam_access_key.ci_deployer[0].secret : null
+  sensitive   = true
+}

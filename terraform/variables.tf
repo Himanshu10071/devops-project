@@ -40,15 +40,15 @@ variable "availability_zone_count" {
 }
 
 variable "node_instance_types" {
-  description = "EC2 instance types for the managed node group."
+  description = "EC2 instance types for the managed node group. m7i-flex.large (2 vCPU / 8 GiB) is Free Tier eligible, so it also works on AWS Free plan accounts, which reject t3.medium."
   type        = list(string)
-  default     = ["t3.medium"]
+  default     = ["m7i-flex.large"]
 }
 
 variable "node_desired_size" {
   description = "Desired number of worker nodes."
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "node_min_size" {
@@ -60,11 +60,23 @@ variable "node_min_size" {
 variable "node_max_size" {
   description = "Maximum number of worker nodes."
   type        = number
-  default     = 5
+  default     = 3
+}
+
+variable "grant_creator_admin" {
+  description = "Give the identity running Terraform cluster-admin. Must be false when running as the AWS root user (EKS rejects root as an access-entry principal)."
+  type        = bool
+  default     = true
+}
+
+variable "create_ci_deployer" {
+  description = "Create a least-privilege IAM user (eks:DescribeCluster only) that GitHub Actions and kubectl use, with cluster-admin inside Kubernetes."
+  type        = bool
+  default     = true
 }
 
 variable "ci_deployer_principal_arn" {
-  description = "Optional IAM user/role ARN used by GitHub Actions to run helm. Gets cluster-admin via an EKS access entry."
+  description = "Optional extra IAM user/role ARN to grant cluster-admin via an EKS access entry."
   type        = string
   default     = ""
 }

@@ -7,13 +7,18 @@ environment     = "dev"
 cluster_name    = "ironpulse-eks"
 cluster_version = "1.35"
 
+# Running Terraform as the AWS root user? Set this to false (EKS rejects root as a principal);
+# the ci-deployer IAM user from iam-ci.tf then provides cluster access.
+grant_creator_admin = true
+create_ci_deployer  = true
+
 vpc_cidr                = "10.30.0.0/16"
 availability_zone_count = 2
 
-node_instance_types = ["t3.medium"]
-node_desired_size   = 3
+node_instance_types = ["m7i-flex.large"]   # Free Tier eligible; t3.medium is rejected on AWS Free plan accounts
+node_desired_size   = 2
 node_min_size       = 2
-node_max_size       = 5
+node_max_size       = 3
 
 # IAM user/role used by GitHub Actions for `helm upgrade` (optional)
 # ci_deployer_principal_arn = "arn:aws:iam::123456789012:user/github-actions-deployer"
