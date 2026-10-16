@@ -18,8 +18,17 @@ spec:
     metadata:
       labels: {app: broken-db}
     spec:
+      # Passes the namespace's "restricted" Pod Security level, so the pod is created
+      # and fails for the reason this lab is about (not at admission).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: {type: RuntimeDefault}
       containers:
         - name: backend
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
           image: ghcr.io/himanshu10071/ironpulse-backend:REPLACE_WITH_SHA
           env:
             - name: DATABASE_URL

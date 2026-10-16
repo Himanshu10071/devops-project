@@ -2,6 +2,8 @@
 
 Three deliberately broken manifests for the "failure simulation" part of the demo. Apply one, diagnose it with the commands below, fix it, and clean up.
 
+The lab Deployments carry a full securityContext so they pass the namespace's *restricted* Pod Security level. Otherwise admission would reject the pod before the lab's real failure could happen.
+
 | Lab | File | Symptom | Root cause |
 |-----|------|---------|------------|
 | 1 | `broken-image.yaml` | `ImagePullBackOff` | Image tag does not exist in GHCR |
@@ -36,7 +38,15 @@ kubectl get endpoints -n ironpulse ironpulse-broken-service     # <none>
 kubectl get pods -n ironpulse -l app.kubernetes.io/name=backend --show-labels
 ```
 
-The selector says `app: ironpulse-api`, but the pods are labelled `app.kubernetes.io/name: backend`. A Service routes only to Pods whose labels match its selector: no match means no endpoints and no traffic. Fix the selector and set `targetPort: 8000`.
+The selector says `app: ironpulse-api`, but the pods are labelled `app.kubernetes.io/name: backend`. A Service routes only to Pods whose labels match its selector: no match means no endpoints and no traffic. Fix the selector and set `targetPort: 8000`:
+
+```bash
+kubectl patch svc ironpulse-broken-service -n ironpulse --type merge -p \
+  '{"spec":{"selector":{"app":null,"app.kubernetes.io/name":"backend","app.kubernetes.io/instance":"ironpulse"},"ports":[{"port":8000,"targetPort":8000}]}}'
+kubectl get endpointslices -n ironpulse -l kubernetes.io/service-name=ironpulse-broken-service   # now lists the backend pod IPs
+```
+
+Note the `"app": null`. A merge patch *adds* keys to the selector, so without it the wrong `app` label stays in the selector and still matches nothing.
 
 ## Lab 3 — CrashLoopBackOff
 

@@ -17,6 +17,15 @@ spec:
     metadata:
       labels: {app: broken-image}
     spec:
+      # Passes the namespace's "restricted" Pod Security level, so the pod is created
+      # and fails for the reason this lab is about (not at admission).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: {type: RuntimeDefault}
       containers:
         - name: backend
           image: ghcr.io/himanshu10071/ironpulse-backend:does-not-exist
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: ["ALL"]}
