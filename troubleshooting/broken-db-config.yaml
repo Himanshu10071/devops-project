@@ -1,0 +1,26 @@
+# LAB 3 — CrashLoopBackOff from bad configuration
+# The backend starts, Alembic cannot reach the database host, the process exits, Kubernetes restarts it.
+#   kubectl apply -f troubleshooting/broken-db-config.yaml
+#   kubectl get pods -n ironpulse -l app=broken-db              -> CrashLoopBackOff, RESTARTS climbing
+#   kubectl logs -n ironpulse -l app=broken-db --previous       -> "could not translate host name"
+# Fix: use the DATABASE_URL from the ironpulse-db Secret (secretKeyRef) instead of a hard-coded host.
+# Replace REPLACE_WITH_SHA with any image tag CI pushed.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ironpulse-broken-db
+  namespace: ironpulse
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: broken-db}
+  template:
+    metadata:
+      labels: {app: broken-db}
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/himanshu10071/ironpulse-backend:REPLACE_WITH_SHA
+          env:
+            - name: DATABASE_URL
+              value: postgresql+psycopg://ironpulse:ironpulse@postgres-does-not-exist:5432/ironpulse

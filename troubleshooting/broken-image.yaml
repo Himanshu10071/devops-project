@@ -1,0 +1,22 @@
+# LAB 1 — ImagePullBackOff
+# The tag below does not exist in the registry, so the kubelet can never pull it.
+#   kubectl apply -f troubleshooting/broken-image.yaml
+#   kubectl get pods -n ironpulse -l app=broken-image        -> ErrImagePull / ImagePullBackOff
+#   kubectl describe pod -n ironpulse -l app=broken-image    -> Events: "manifest unknown"
+# Fix: point the image at a real tag (a commit SHA pushed by CI), then re-apply.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ironpulse-broken-image
+  namespace: ironpulse
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: broken-image}
+  template:
+    metadata:
+      labels: {app: broken-image}
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/himanshu10071/ironpulse-backend:does-not-exist

@@ -1,0 +1,18 @@
+# LAB 2 — Service with no endpoints
+# The selector matches no Pod labels, so the Service has zero endpoints and traffic goes nowhere.
+#   kubectl apply -f troubleshooting/broken-service.yaml
+#   kubectl get endpoints -n ironpulse ironpulse-broken-service   -> ENDPOINTS <none>
+#   kubectl get pods -n ironpulse --show-labels                   -> compare with the selector
+# Fix: selector must be app.kubernetes.io/name: backend + app.kubernetes.io/instance: ironpulse,
+#      and targetPort must be the container port (8000), not 8080.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ironpulse-broken-service
+  namespace: ironpulse
+spec:
+  selector:
+    app: ironpulse-api            # wrong: the chart labels pods with app.kubernetes.io/name
+  ports:
+    - port: 8000
+      targetPort: 8080            # wrong: the backend listens on 8000
