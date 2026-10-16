@@ -1,0 +1,39 @@
+# Values for prometheus-community/kube-prometheus-stack (Prometheus Operator + Grafana).
+#   helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#     -n monitoring --create-namespace -f monitoring/prometheus-values.yaml
+
+prometheus:
+  prometheusSpec:
+    # Pick up ServiceMonitors from every namespace, not only ones labelled for this release.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorNamespaceSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    retention: 3d
+    resources:
+      requests: {cpu: 200m, memory: 512Mi}
+      limits: {memory: 1Gi}
+
+grafana:
+  enabled: true
+  # Change after first login, or pass --set grafana.adminPassword=... (never commit real ones).
+  adminPassword: ironpulse-admin
+  defaultDashboardsTimezone: browser
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard     # the IronPulse chart ships a ConfigMap with this label
+      searchNamespace: ALL
+  service:
+    type: ClusterIP                # reach it with: kubectl port-forward svc/kube-prometheus-stack-grafana 3001:80 -n monitoring
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests: {cpu: 25m, memory: 64Mi}
+
+kube-state-metrics:
+  enabled: true                    # provides the HPA replica metrics used on the dashboard
+
+prometheus-node-exporter:
+  enabled: true
