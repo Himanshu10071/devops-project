@@ -10,6 +10,8 @@ The application is the vehicle; the capstone is the delivery pipeline around it.
 
 **📊 Presentation:** the project slides are in [`docs/presentation/`](docs/presentation/). Open [IronPulse-Capstone.pdf](docs/presentation/IronPulse-Capstone.pdf) to view them in the browser, or download the [editable PowerPoint](docs/presentation/IronPulse-Capstone.pptx).
 
+**🎬 Video walkthrough (≈3 min):** [watch on Google Drive](https://drive.google.com/file/d/10Hz3WGL_ThMl4qU7htD16tgQWGZg98OK/view?usp=sharing)
+
 ---
 
 ## Project status
