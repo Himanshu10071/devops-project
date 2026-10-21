@@ -8,6 +8,8 @@ The application is the vehicle; the capstone is the delivery pipeline around it.
 
 ![IronPulse served from AWS EKS through the load balancer](docs/screenshots/m8-browser-ingress-elb.png)
 
+**📊 Presentation:** the project slides are in [`docs/presentation/`](docs/presentation/). Open [IronPulse-Capstone.pdf](docs/presentation/IronPulse-Capstone.pdf) to view them in the browser, or download the [editable PowerPoint](docs/presentation/IronPulse-Capstone.pptx).
+
 ---
 
 ## Project status
@@ -110,7 +112,7 @@ Membership end dates are computed from the plan duration (Jan 31 + 1 month = Feb
 ├── monitoring/              kube-prometheus-stack values, PrometheusRule alerts
 ├── scripts/                 bootstrap-cluster.sh, load-test.sh, seed-demo-data.sh
 ├── troubleshooting/         three deliberately broken manifests + lab guide
-└── docs/                    rubric evidence map, demo script, screenshots/
+└── docs/                    presentation/ (slides), rubric evidence map, demo script, screenshots/
 ```
 
 ---
